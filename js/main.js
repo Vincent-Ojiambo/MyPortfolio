@@ -1,17 +1,93 @@
 // DOM Elements
 const mobileMenuButton = document.querySelector('.mobile-menu-button');
 const mobileMenu = document.querySelector('.mobile-menu');
-const navbar = document.querySelector('.navbar');
-const navLinks = document.querySelectorAll('.nav-link');
+const navbar = document.querySelector('#navbar');
+const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
 const themeToggle = document.querySelector('#theme-toggle');
 const mobileThemeToggle = document.querySelector('#mobile-theme-toggle');
+const mobileThemeToggleMenu = document.querySelector('#mobile-theme-toggle-menu');
 const backToTopButton = document.querySelector('#back-to-top');
 const projectCards = document.querySelectorAll('.project-card');
 const skillCards = document.querySelectorAll('.skill-card');
 
+// Smooth scroll to section with offset for fixed header
+function smoothScrollTo(target) {
+    const element = document.querySelector(target);
+    if (element) {
+        const headerOffset = 80; // Height of your header
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - headerOffset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Handle navigation link clicks
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = this.getAttribute('href');
+        if (target === '#') return;
+        
+        smoothScrollTo(target);
+        
+        // Close mobile menu if open
+        if (mobileMenu.classList.contains('hidden') === false) {
+            mobileMenu.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    });
+});
+
+// Active section highlighting
+function updateActiveSection() {
+    const scrollPosition = window.scrollY + 100;
+    
+    document.querySelectorAll('section').forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        const sectionId = section.getAttribute('id');
+        
+        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+            // Update desktop nav
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('text-indigo-600', 'dark:text-indigo-400');
+                link.classList.add('text-gray-700', 'dark:text-gray-300');
+                link.querySelector('span:last-child').style.width = '0';
+            });
+            
+            const activeLink = document.querySelector(`.nav-link[data-section="${sectionId}"]`);
+            if (activeLink) {
+                activeLink.classList.remove('text-gray-700', 'dark:text-gray-300');
+                activeLink.classList.add('text-indigo-600', 'dark:text-indigo-400');
+                activeLink.querySelector('span:last-child').style.width = '100%';
+            }
+            
+            // Update mobile nav
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                link.classList.remove('text-indigo-600', 'dark:text-indigo-400');
+                link.classList.add('text-gray-700', 'dark:text-gray-300');
+                const dot = link.querySelector('span:last-child');
+                if (dot) dot.style.opacity = '0';
+            });
+            
+            const activeMobileLink = document.querySelector(`.mobile-nav-link[data-section="${sectionId}"]`);
+            if (activeMobileLink) {
+                activeMobileLink.classList.remove('text-gray-700', 'dark:text-gray-300');
+                activeMobileLink.classList.add('text-indigo-600', 'dark:text-indigo-400');
+                const dot = activeMobileLink.querySelector('span:last-child');
+                if (dot) dot.style.opacity = '1';
+            }
+        }
+    });
+}
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize theme and other components
+        // Initialize theme and other components
     initTheme();
     
     // Initialize back to top button visibility
@@ -20,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add event listeners
     if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
     if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', toggleTheme);
+    if (mobileThemeToggleMenu) mobileThemeToggleMenu.addEventListener('click', toggleTheme);
     if (backToTopButton) backToTopButton.addEventListener('click', scrollToTop);
     
     // Add card hover effects
@@ -28,17 +105,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize mobile menu
     if (mobileMenuButton) mobileMenuButton.addEventListener('click', toggleMobileMenu);
     
-    // Close mobile menu when clicking on a link
-    navLinks.forEach(link => {
-        link.addEventListener('click', closeMobileMenu);
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+            mobileMenu.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
     });
     
     // Initialize animations
     animateSkills();
     initAnimations();
     
-    // Initial check for elements in viewport
+    // Initial check for elements in viewport and active section
     checkScroll();
+    updateActiveSection();
+    
+    // Add scroll event listener for active section
+    window.addEventListener('scroll', () => {
+        toggleBackToTop();
+        updateActiveSection();
+    });
 });
 
 // Check for saved theme preference or use system preference
@@ -48,12 +135,12 @@ function initTheme() {
         document.documentElement.classList.add('dark');
         document.body.classList.add('dark');
         if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        if (mobileThemeToggle) mobileThemeToggle.innerHTML = '<i class="fas fa-sun mr-2"></i> Light Mode';
+        if (mobileThemeToggle) mobileThemeToggle.innerHTML = '<i class="fas fa-sun"></i>';
     } else {
         document.documentElement.classList.remove('dark');
         document.body.classList.remove('dark');
         if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        if (mobileThemeToggle) mobileThemeToggle.innerHTML = '<i class="fas fa-moon mr-2"></i> Dark Mode';
+        if (mobileThemeToggle) mobileThemeToggle.innerHTML = '<i class="fas fa-moon"></i>';
     }
     
     // Force a reflow to ensure transitions work
@@ -62,36 +149,71 @@ function initTheme() {
 
 // Toggle dark/light theme
 function toggleTheme() {
+    // Show loading state
+    const themeIcons = document.querySelectorAll('#theme-toggle i, #mobile-theme-toggle i, #mobile-theme-toggle-menu i');
+    themeIcons.forEach(icon => {
+        icon.style.transition = 'opacity 0.2s';
+        icon.style.opacity = '0.5';
+    });
+    
     // Add transition class for smooth theme change
     document.documentElement.classList.add('no-transitions');
     
-    if (document.documentElement.classList.contains('dark')) {
-        // Switch to light mode
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-        document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.theme = 'light';
-        
-        // Update toggle buttons
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        if (mobileThemeToggle) mobileThemeToggle.innerHTML = '<i class="fas fa-moon mr-2"></i> Dark Mode';
-    } else {
-        // Switch to dark mode
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.theme = 'dark';
-        
-        // Update toggle buttons
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        if (mobileThemeToggle) mobileThemeToggle.innerHTML = '<i class="fas fa-sun mr-2"></i> Light Mode';
-    }
-    
-    // Force reflow and remove transition class after a short delay
-    document.body.offsetHeight;
+    // Toggle theme after a small delay for better UX
     setTimeout(() => {
-        document.documentElement.classList.remove('no-transitions');
-    }, 10);
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            // Switch to light mode
+            document.documentElement.classList.remove('dark');
+            document.body.classList.remove('dark');
+            localStorage.theme = 'light';
+            document.querySelectorAll('.dark\:hidden').forEach(el => el.classList.remove('dark:hidden'));
+            document.querySelectorAll('.dark\:inline').forEach(el => el.classList.remove('dark:inline'));
+        } else {
+            // Switch to dark mode
+            document.documentElement.classList.add('dark');
+            document.body.classList.add('dark');
+            localStorage.theme = 'dark';
+            document.querySelectorAll('.dark\:hidden').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.dark\:inline').forEach(el => el.classList.add('inline'));
+        }
+        
+        // Update icons
+        if (themeToggle) {
+            themeToggle.innerHTML = `
+                <i class="fas fa-moon dark:hidden"></i>
+                <i class="fas fa-sun hidden dark:inline"></i>
+            `;
+        }
+        
+        if (mobileThemeToggle) {
+            mobileThemeToggle.innerHTML = `
+                <i class="fas fa-moon text-xl dark:hidden"></i>
+                <i class="fas fa-sun text-xl hidden dark:inline"></i>
+                <span class="absolute inset-0 rounded-full bg-indigo-100 dark:bg-indigo-900 opacity-0 group-hover:opacity-30 transition-opacity duration-200 -z-10"></span>
+            `;
+        }
+        
+        if (mobileThemeToggleMenu) {
+            mobileThemeToggleMenu.innerHTML = `
+                <i class="fas fa-moon dark:hidden"></i>
+                <i class="fas fa-sun hidden dark:inline"></i>
+                <span class="absolute inset-0 rounded-full bg-indigo-100 dark:bg-indigo-900 opacity-0 group-hover:opacity-30 transition-opacity duration-200 -z-10"></span>
+            `;
+        }
+        
+        // Reset opacity
+        themeIcons.forEach(icon => {
+            icon.style.opacity = '1';
+        });
+        
+        // Force a reflow to ensure transitions work
+        void document.body.offsetHeight;
+        
+        // Remove no-transitions class after a short delay
+        setTimeout(() => {
+            document.documentElement.classList.remove('no-transitions');
+        }, 10);
+    }, 150);
 }
 
 // Show/hide back to top button based on scroll position
@@ -140,17 +262,19 @@ function addCardHoverEffect() {
 
 // Mobile menu toggle
 function toggleMobileMenu() {
-    mobileMenu.classList.toggle('active');
-    document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+    mobileMenu.classList.toggle('hidden');
+    document.body.style.overflow = mobileMenu.classList.contains('hidden') ? 'auto' : 'hidden';
     
-    // Toggle hamburger icon
-    const icon = mobileMenuButton.querySelector('i');
-    if (mobileMenu.classList.contains('active')) {
-        icon.classList.remove('fa-bars');
-        icon.classList.add('fa-times');
-    } else {
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-bars');
+    // Toggle menu icon between bars and times
+    const menuIcon = mobileMenuButton.querySelector('i');
+    if (menuIcon) {
+        if (mobileMenu.classList.contains('hidden')) {
+            menuIcon.classList.remove('fa-times');
+            menuIcon.classList.add('fa-bars');
+        } else {
+            menuIcon.classList.remove('fa-bars');
+            menuIcon.classList.add('fa-times');
+        }
     }
 }
 
