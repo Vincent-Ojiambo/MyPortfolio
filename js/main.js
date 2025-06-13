@@ -433,10 +433,6 @@ function initAnimations() {
     // Check for elements in viewport on scroll
     window.addEventListener('scroll', animateOnScroll);
 }
-            element.style.transform = 'translateY(0)';
-        }
-    });
-};
 
 // Animate skills when they come into view
 function animateSkills() {

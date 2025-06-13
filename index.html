@@ -173,11 +173,8 @@
                     <div class="md:hidden mx-auto my-6 w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
                         <img src="assets/images/profile/img.jpg" alt="Profile" class="w-full h-full object-cover">
                     </div>
-                    <h2 class="hero-subtitle animate-fade-in" style="animation-delay: 200ms">
-                        <span class="relative inline-block">
-                            <span class="relative z-10 dark:text-gray-300">Full Stack Developer & UX Enthusiast</span>
-                            <span class="absolute bottom-2 left-0 w-full h-3 bg-indigo-100 dark:bg-indigo-900/50 -z-0 transform -rotate-1"></span>
-                        </span>
+                    <h2 class="hero-subtitle animate-fade-in dark:text-gray-300" style="animation-delay: 200ms">
+                        Full Stack Developer & UX Enthusiast
                     </h2>
                     <p class="text-gray-700 dark:text-gray-300 animate-fade-in" style="animation-delay: 300ms">
                         I transform complex problems into elegant, user-centered solutions. 
@@ -997,44 +994,31 @@
     <script src="js/contact.js"></script>
     
     <script>
-        // Mobile theme toggle
-        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
-        const themeToggleBtn = document.getElementById('theme-toggle');
+        // Back to Top Button
+        const backToTopButton = document.getElementById('back-to-top');
         
-        if (mobileThemeToggle && themeToggleBtn) {
-            mobileThemeToggle.addEventListener('click', () => {
-                themeToggleBtn.click(); // Trigger the main theme toggle
+        if (backToTopButton) {
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.remove('opacity-0', 'invisible', 'translate-y-4');
+                    backToTopButton.classList.add('opacity-100', 'visible', 'translate-y-0');
+                } else {
+                    backToTopButton.classList.remove('opacity-100', 'visible', 'translate-y-0');
+                    backToTopButton.classList.add('opacity-0', 'invisible', 'translate-y-4');
+                }
             });
         }
     </script>
 
     <script>
-        // Theme Toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        themeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        });
-
-        // Back to Top Button
-        const backToTopButton = document.getElementById('back-to-top');
-        
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                backToTopButton.classList.remove('opacity-0', 'invisible', 'translate-y-4');
-                backToTopButton.classList.add('opacity-100', 'visible', 'translate-y-0');
-            } else {
-                backToTopButton.classList.add('opacity-0', 'invisible', 'translate-y-4');
-                backToTopButton.classList.remove('opacity-100', 'visible', 'translate-y-0');
-            }
-        });
-
-        backToTopButton.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
+        if (backToTopButton) {
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
             });
-        });
+        }
 
         // Add hover animations to all cards
         document.querySelectorAll('.project-card, .skill-card').forEach(card => {
