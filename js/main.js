@@ -433,3 +433,59 @@ function initAnimations() {
     // Check for elements in viewport on scroll
     window.addEventListener('scroll', animateOnScroll);
 }
+            element.style.transform = 'translateY(0)';
+        }
+    });
+};
+
+// Animate skills when they come into view
+function animateSkills() {
+    const skillItems = document.querySelectorAll('.skill-item');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Animate skill items
+                entry.target.classList.add('visible');
+                
+                // Animate progress bars
+                const progressBar = entry.target.querySelector('.skill-progress');
+                if (progressBar) {
+                    const width = progressBar.getAttribute('data-width');
+                    progressBar.style.width = `${width}%`;
+                }
+                
+                // Stop observing after animation
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.2,
+        rootMargin: '0px 0px -50px 0px'
+    });
+
+    // Observe each skill item
+    skillItems.forEach((item, index) => {
+        // Add staggered delay for each item
+        item.style.transitionDelay = `${index * 100}ms`;
+        observer.observe(item);
+    });
+}
+
+// Initialize animations for elements with the animate-on-scroll class
+function initAnimations() {
+    const animatedElements = document.querySelectorAll('.project-card, .skill-card');
+    
+    animatedElements.forEach((element, index) => {
+        element.classList.add('animate-on-scroll');
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = `opacity 0.6s ease-out ${index * 0.1}s, transform 0.6s ease-out ${index * 0.1}s`;
+    });
+    
+    // Initial check for elements in viewport
+    animateOnScroll();
+    
+    // Check for elements in viewport on scroll
+    window.addEventListener('scroll', animateOnScroll);
+}
