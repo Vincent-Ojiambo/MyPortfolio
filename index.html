@@ -1181,11 +1181,9 @@
                 <div class="lg:col-span-2">
                     <div class="bg-white p-8 rounded-xl shadow-lg h-full">
                         <h3 class="text-2xl font-bold text-gray-800 mb-6">Send Me a Message</h3>
-                        <form id="contact-form" action="https://formspree.io/f/xkgbrzzo" method="POST" class="space-y-6">
+                        <form id="contact-form" class="space-y-6">
+                            <!-- Form Status Messages -->
                             <div id="form-messages" class="hidden p-4 mb-6 rounded-lg"></div>
-                            <input type="hidden" name="_subject" value="New message from your portfolio">
-                            <input type="hidden" name="_next" value="thank-you.html">
-                            <input type="hidden" name="_language" value="en">
                             
                             <div class="grid md:grid-cols-2 gap-6">
                                 <div class="form-group">
@@ -1325,6 +1323,100 @@
     <script>
         // Update copyright year
         document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Contact Form Handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contact-form');
+            const formMessages = document.getElementById('form-messages');
+            const formspreeUrl = 'https://formspree.io/f/xkgbrzzo';
+            const thankYouUrl = 'https://vincent-ojiambo.github.io/MyPortfolio/thank-you.html';
+            
+            if (contactForm) {
+                contactForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Reset messages
+                    formMessages.className = 'hidden';
+                    formMessages.textContent = '';
+                    
+                    // Get form elements
+                    const name = document.getElementById('name').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const subject = document.getElementById('subject').value.trim();
+                    const message = document.getElementById('message').value.trim();
+                    const submitButton = contactForm.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+                    
+                    // Basic validation
+                    if (!name || !email || !subject || !message) {
+                        showFormMessage('Please fill in all required fields.', 'error');
+                        return;
+                    }
+                    
+                    // Email validation
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        showFormMessage('Please enter a valid email address.', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        // Show loading state
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
+                        
+                        // Prepare form data
+                        const formData = new URLSearchParams();
+                        formData.append('name', name);
+                        formData.append('email', email);
+                        formData.append('subject', subject);
+                        formData.append('message', message);
+                        formData.append('_subject', 'New Contact Form Submission');
+                        formData.append('_language', 'en');
+                        
+                        // Submit form using Fetch API
+                        const response = await fetch(formspreeUrl, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            // Show success message
+                            showFormMessage('Message sent successfully! Redirecting...', 'success');
+                            // Redirect to thank you page after a short delay
+                            setTimeout(() => {
+                                window.location.href = thankYouUrl;
+                            }, 1500);
+                        } else {
+                            throw new Error(data.error || 'Form submission failed');
+                        }
+                    } catch (error) {
+                        console.error('Form submission error:', error);
+                        showFormMessage('Something went wrong. Please try again later or contact me directly at ojiambovincent17@gmail.com', 'error');
+                    } finally {
+                        // Reset button state
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
+                });
+            }
+            
+            function showFormMessage(message, type) {
+                const formMessages = document.getElementById('form-messages');
+                formMessages.textContent = message;
+                formMessages.className = `p-4 mb-6 rounded-lg ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+                formMessages.classList.remove('hidden');
+                
+                // Scroll to message
+                formMessages.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
     </script>
     <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
     <script>
