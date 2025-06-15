@@ -5,30 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
     <title>Vincent Ojiambo | Portfolio</title>
-    <script>
-        // Check for saved user preference, if any, on page load
-        document.documentElement.classList.add('no-transitions');
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            document.documentElement.setAttribute('data-theme', 'light');
-        }
-        // Remove no-transitions class after a short delay to prevent initial flash
-        setTimeout(() => {
-            document.documentElement.classList.remove('no-transitions');
-        }, 0);
-    </script>
     <meta name="description" content="Professional portfolio of Vincent Ojiambo - Web Developer & Designer">
     <meta name="keywords" content="portfolio, web developer, designer, frontend, javascript, react">
-    <!-- Favicon -->
-    <link rel="icon" type="image/jpg" href="assets/images/profile/img.jpg">
-    <link rel="apple-touch-icon" href="assets/images/profile/img.jpg">
+    
+    <!-- Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></noscript>
+    
+    <!-- Load Google Fonts asynchronously -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap"></noscript>
+    
+    <!-- Load Font Awesome asynchronously -->
+    <link rel="preload" href="https://kit.fontawesome.com/your-code.js" as="script">
+    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous" defer></script>
+    
+    <!-- Inline critical CSS -->
+    <style>
+        /* Critical CSS for above-the-fold content */
+        .no-transitions * {
+            transition: none !important;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Add more critical styles as needed */
+    </style>
+    <script>
+        // Self-executing function to avoid polluting global scope
+        (function() {
+            // Check for saved user preference, if any, on page load
+            const html = document.documentElement;
+            const theme = localStorage.theme || 
+                         (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            
+            // Apply theme immediately to prevent FOUC (Flash of Unstyled Content)
+            html.classList.add('no-transitions');
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                html.setAttribute('data-theme', 'dark');
+            } else {
+                html.classList.remove('dark');
+                html.setAttribute('data-theme', 'light');
+            }
+            
+            // Force reflow
+            void html.offsetHeight;
+            
+            // Remove no-transitions class after a short delay
+            requestAnimationFrame(() => {
+                html.classList.remove('no-transitions');
+            });
+        })();
+    </script>
+    <!-- Favicon and Preload Critical Assets -->
+    <link rel="preload" href="assets/images/profile/img.jpg" as="image" type="image/jpeg" fetchpriority="high">
+    <link rel="icon" type="image/jpg" href="assets/images/profile/img.jpg">
+    <link rel="apple-touch-icon" href="assets/images/profile/img.jpg">
+    
+    <!-- Preload hero image if you have one -->
+    <!-- <link rel="preload" href="path/to/hero-image.jpg" as="image" media="(max-width: 600px)">
+    <link rel="preload" href="path/to/hero-image-large.jpg" as="image" media="(min-width: 601px)"> -->
     <style>
         /* Custom animation for subtle pulse effect */
         @keyframes pulse-slow {
@@ -114,8 +160,9 @@
     <script src="js/main.js" defer></script>
     <script src="js/background.js" defer></script>
     <script>
-        // 3D Tilt Effect for Profile Picture
-        document.addEventListener('DOMContentLoaded', function() {
+        // 3D Tilt Effect for Profile Picture - Defer initialization
+        // This will run after the page has fully loaded
+        window.addEventListener('load', function() {
             const profileContainer = document.querySelector('.profile-3d-container');
             
             if (profileContainer) {
@@ -268,7 +315,7 @@
             <!-- Row 1 -->
             <div class="flex items-center justify-center">
                 <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm flex items-center justify-center animate-float" style="animation-delay: 0s;">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="React" class="w-6 h-6 md:w-8 md:h-8" />
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="React" class="w-6 h-6 md:w-8 md:h-8" loading="lazy" decoding="async" width="32" height="32">
                 </div>
             </div>
             <div class="flex items-center justify-center">
@@ -322,7 +369,7 @@
             <!-- Row 3 -->
             <div class="flex items-center justify-center">
                 <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm flex items-center justify-center animate-float" style="animation-delay: 0.4s;">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" alt="Figma" class="w-6 h-6 md:w-8 md:h-8" />
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" alt="Figma" class="w-6 h-6 md:w-8 md:h-8" loading="lazy" decoding="async" width="32" height="32"> />
                 </div>
             </div>
             <div class="flex items-center justify-center">
@@ -1418,7 +1465,34 @@
             }
         });
     </script>
-    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
+    <!-- Defer non-critical JavaScript -->
+    <script>
+        // Load non-critical CSS after page load
+        function loadCSS(href) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            document.head.appendChild(link);
+        }
+        
+        // Load non-critical JavaScript
+        function loadJS(src, callback) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.defer = true;
+            if (callback) script.onload = callback;
+            document.head.appendChild(script);
+        }
+        
+        // Load non-critical resources after page load
+        window.addEventListener('load', function() {
+            // Load additional CSS if needed
+            // loadCSS('path/to/non-critical.css');
+            
+            // Load additional JS if needed
+            // loadJS('path/to/non-critical.js');
+        });
+    </script>
     <script>
         // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', function() {
