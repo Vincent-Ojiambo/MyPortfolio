@@ -3,9 +3,6 @@ const mobileMenuButton = document.querySelector('.mobile-menu-button');
 const mobileMenu = document.querySelector('.mobile-menu');
 const navbar = document.querySelector('#navbar');
 const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
-const themeToggle = document.querySelector('#theme-toggle');
-const mobileThemeToggle = document.querySelector('#mobile-theme-toggle');
-const mobileThemeToggleMenu = document.querySelector('#mobile-theme-toggle-menu');
 const backToTopButton = document.querySelector('#back-to-top');
 const projectCards = document.querySelectorAll('.project-card');
 const skillCards = document.querySelectorAll('.skill-card');
@@ -87,16 +84,13 @@ function updateActiveSection() {
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-        // Initialize theme and other components
+        // Initialize components
     initTheme();
     
     // Initialize back to top button visibility
     toggleBackToTop();
     
     // Add event listeners
-    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-    if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', toggleTheme);
-    if (mobileThemeToggleMenu) mobileThemeToggleMenu.addEventListener('click', toggleTheme);
     if (backToTopButton) backToTopButton.addEventListener('click', scrollToTop);
     
     // Add card hover effects
@@ -128,93 +122,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Check for saved theme preference or use system preference
+// Initialize theme (kept for compatibility, but does nothing)
 function initTheme() {
-    // Add dark class to html element if in dark mode
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        if (mobileThemeToggle) mobileThemeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-    } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        if (mobileThemeToggle) mobileThemeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-    }
-    
-    // Force a reflow to ensure transitions work
-    document.body.offsetHeight;
+    // Ensure light theme is always active
+    document.documentElement.classList.remove('dark');
+    document.documentElement.setAttribute('data-theme', 'light');
 }
 
-// Toggle dark/light theme
-function toggleTheme() {
-    // Show loading state
-    const themeIcons = document.querySelectorAll('#theme-toggle i, #mobile-theme-toggle i, #mobile-theme-toggle-menu i');
-    themeIcons.forEach(icon => {
-        icon.style.transition = 'opacity 0.2s';
-        icon.style.opacity = '0.5';
-    });
-    
-    // Add transition class for smooth theme change
-    document.documentElement.classList.add('no-transitions');
-    
-    // Toggle theme after a small delay for better UX
-    setTimeout(() => {
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            // Switch to light mode
-            document.documentElement.classList.remove('dark');
-            document.body.classList.remove('dark');
-            localStorage.theme = 'light';
-            document.querySelectorAll('.dark\:hidden').forEach(el => el.classList.remove('dark:hidden'));
-            document.querySelectorAll('.dark\:inline').forEach(el => el.classList.remove('dark:inline'));
-        } else {
-            // Switch to dark mode
-            document.documentElement.classList.add('dark');
-            document.body.classList.add('dark');
-            localStorage.theme = 'dark';
-            document.querySelectorAll('.dark\:hidden').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.dark\:inline').forEach(el => el.classList.add('inline'));
-        }
-        
-        // Update icons
-        if (themeToggle) {
-            themeToggle.innerHTML = `
-                <i class="fas fa-moon dark:hidden"></i>
-                <i class="fas fa-sun hidden dark:inline"></i>
-            `;
-        }
-        
-        if (mobileThemeToggle) {
-            mobileThemeToggle.innerHTML = `
-                <i class="fas fa-moon text-xl dark:hidden"></i>
-                <i class="fas fa-sun text-xl hidden dark:inline"></i>
-                <span class="absolute inset-0 rounded-full bg-indigo-100 dark:bg-indigo-900 opacity-0 group-hover:opacity-30 transition-opacity duration-200 -z-10"></span>
-            `;
-        }
-        
-        if (mobileThemeToggleMenu) {
-            mobileThemeToggleMenu.innerHTML = `
-                <i class="fas fa-moon dark:hidden"></i>
-                <i class="fas fa-sun hidden dark:inline"></i>
-                <span class="absolute inset-0 rounded-full bg-indigo-100 dark:bg-indigo-900 opacity-0 group-hover:opacity-30 transition-opacity duration-200 -z-10"></span>
-            `;
-        }
-        
-        // Reset opacity
-        themeIcons.forEach(icon => {
-            icon.style.opacity = '1';
-        });
-        
-        // Force a reflow to ensure transitions work
-        void document.body.offsetHeight;
-        
-        // Remove no-transitions class after a short delay
-        setTimeout(() => {
-            document.documentElement.classList.remove('no-transitions');
-        }, 10);
-    }, 150);
-}
+
 
 // Show/hide back to top button based on scroll position
 function toggleBackToTop() {
@@ -287,18 +202,60 @@ function closeMobileMenu() {
     icon.classList.add('fa-bars');
 }
 
-// Event Listeners
-mobileMenuButton.addEventListener('click', toggleMobileMenu);
-
-// Theme toggle
-if (themeToggle) {
-    themeToggle.addEventListener('click', toggleTheme);
+// Initialize header components
+function initHeader() {
+    // Mobile menu button
+    if (mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', toggleMobileMenu);
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                const icon = mobileMenuButton.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        });
+    }
+    
+    // Theme toggles
+    const themeToggles = [themeToggle, mobileThemeToggle, mobileThemeToggleMenu];
+    themeToggles.forEach(toggle => {
+        if (toggle) {
+            toggle.addEventListener('click', toggleTheme);
+        }
+    });
+    
+    // Close mobile menu when clicking on a link
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+    mobileNavLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            const icon = mobileMenuButton.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+    });
+    
+    // Back to top button
+    window.addEventListener('scroll', toggleBackToTop);
+    if (backToTopButton) {
+        backToTopButton.addEventListener('click', scrollToTop);
+    }
 }
 
-// Back to top button
-window.addEventListener('scroll', toggleBackToTop);
-if (backToTopButton) {
-    backToTopButton.addEventListener('click', scrollToTop);
+// Initialize header components when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeader);
+} else {
+    initHeader();
 }
 
 // Add hover effects to cards
